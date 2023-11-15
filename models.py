@@ -129,6 +129,26 @@ class User:
 
          return {"likes": likes, "tags": tags}
 
+     def find_post(self, post_id):
+         query = f"""
+         MATCH (user:User)-[:PUBLISHED]->(post:Post)
+         WHERE user.username = $username AND post.id = $post_id
+         RETURN post
+         """
+         result = graph.run(query, username=self.username, post_id=post_id).data()
+         return result[0]["post"] if result else None
+
+     def delete_post(self, post_id):
+         found_post = self.find_post(post_id)
+         if found_post:
+             cypher_query = f"""
+             MATCH (author:User)-[relationship:PUBLISHED]->(target_post:Post)
+             WHERE author.username = $current_user AND target_post.id = $post_id
+             DETACH DELETE target_post
+             """
+             graph.run(cypher_query, current_user=self.username, post_id=post_id)
+
+
 def search_by_tags(tags):
     query = """
     MATCH (post:Post)<-[:TAGGED]-(tag:Tag)

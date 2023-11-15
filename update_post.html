@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<h2>Update Post</h2>
+
+<form method="POST" action="">
+    <div class="form-group">
+        <label for="updated_text">Updated Content:</label>
+        <textarea id="updated_text" name="updated_text" class="form-control">{{ post.text }}</textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Update</button>
+</form>
+
+{% endblock %}

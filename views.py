@@ -1,5 +1,5 @@
 from flask import Flask, request, session, redirect, url_for, render_template, flash
-from models import User,recent_post,search_by_tags
+from models import User,recent_post,search_by_tags,graph
 
 app = Flask(__name__)
 
@@ -113,8 +113,55 @@ def search():
 def view_post(post_id):
     # Retrieve and display the post with the given post_id
     # You can implement this logic here
-    return render_template("post.html", post=post)
+    return render_template("post.html", post=post_id)
 
+
+@app.route("/delete_post/<post_id>", methods=["POST"])
+def delete_post(post_id):
+    # Verify user authentication
+    if "username" in session:
+        username = session["username"]
+        user = User(username)
+
+        post = user.find_post(post_id)
+        if post:
+            user.delete_post(post_id)
+            flash("Post successfully removed.")
+        else:
+            flash("Post not located or you lack the authority to delete it.")
+    else:
+        flash("Log in required to delete a post.")
+
+    return redirect(url_for("profile", username=username))
+
+
+@app.route("/update_post/<post_id>", methods=["GET", "POST"])
+def update_post(post_id):
+    if "username" in session:
+        username = session["username"]
+        user = User(username)
+
+        post = user.find_post(post_id)
+
+        if not post:
+            flash("Post not located or you lack the necessary permissions to modify it.")
+            return redirect(url_for("profile", username=username))
+
+        if request.method == "POST":
+            updated_text = request.form["updated_text"]
+            if not updated_text:
+                flash("Please provide updated text for your post.")
+            else:
+                # Update the post content
+                post['text'] = updated_text
+                graph.push(post)
+                flash("Post successfully updated.")
+                return redirect(url_for("profile", username=username))
+
+        return render_template("update_post.html", post=post)
+    else:
+        flash("You need to be logged in to update a post.")
+        return redirect(url_for("login"))
 
 
 @app.route("/logout")

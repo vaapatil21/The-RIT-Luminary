@@ -6,33 +6,83 @@
 {% if session.username %}
     {% if session.username == username %}
         <h3>Users similar to you:</h3>
-
-          {% for user in similar %}
-            <p>
-            <a href="{{ url_for('profile', username=user.similar_user) }}">{{ user.similar_user }}</a>
-            also blogs about <i>{{ ", ".join(user.tags) }}</i>
-            </p>
-          {% else %}
+        {% if similar %}
+            {% for user in similar %}
+                <p>
+                    <a href="{{ url_for('profile', username=user.similar_user) }}">{{ user.similar_user }}</a>
+                    also blogs about <i>{{ ", ".join(user.tags) }}</i>
+                </p>
+            {% endfor %}
+        {% else %}
             <p>No other users have written about the same tags as you :(</p>
-          {% endfor %}
+        {% endif %}
 
-        <h3>Latest from Your Blog:</h3>
-
+        <h3>Your recent posts:</h3>
+        {% if posts %}
+            <ul class="posts">
+                {% for row in posts %}
+                    <li>
+                        <div class="post-header">
+                            <div>
+                                <b>{{ row.post.title }}</b>
+                            </div>
+                            <div class="button-group">
+                                <a href="{{ url_for('like_post', post_id=row.post.id) }}" class="button">Like</a>
+                                <form action="{{ url_for('delete_post', post_id=row.post.id) }}" method="post" style="display: inline;">
+                                    <button type="submit" class="button">Delete</button>
+                                </form>
+                                <form action="{{ url_for('update_post', post_id=row.post.id) }}" method="get" style="display: inline;">
+                                <button type="submit" class="button">Update</button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            {{ row.post.text }}
+                        </div>
+                        <div class="post-tags">
+                            <i>{{ ", ".join(row.tags) }}</i>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No posts yet!</p>
+        {% endif %}
     {% else %}
+        <p>{{ username }} has liked {{ common.likes }} of your posts and
+            {% if common.tags %}
+            also blogs about <i>{{ ", ".join(common.tags) }}</i>
+            {% else %}
+            hasn't blogged about any of the same tags
+            {% endif %}
+        </p>
 
-  <p>{{ username }} has liked {{ common.likes }} of your posts and
-      {% if common.tags %}
-      also blogs about <i>{{ ", ".join(common.tags) }}</i>
-      {% else %}
-      hasn't blogged about any of the same tags
-      {% endif %}
-  </p>
-
-  <h3>{{ username }}'s recent posts:</h3>
-
+        <h3>{{ username }}'s recent posts:</h3>
+        {% if posts %}
+            <ul class="posts">
+                {% for row in posts %}
+                    <li>
+                        <div class="post-header">
+                            <div>
+                                <b>{{ row.post.title }}</b>
+                            </div>
+                            <div class="button-group">
+                                <a href="{{ url_for('like_post', post_id=row.post.id) }}" class="button">Like</a>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            {{ row.post.text }}
+                        </div>
+                        <div class="post-tags">
+                            <i>{{ ", ".join(row.tags) }}</i>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No posts yet!</p>
+        {% endif %}
     {% endif %}
 {% endif %}
-
-{% include "display_posts.html" %}
 
 {% endblock %}
